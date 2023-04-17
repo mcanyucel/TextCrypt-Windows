@@ -1,5 +1,4 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
@@ -36,9 +35,32 @@ namespace TextCrypt.service.implementation
             });
 
 
-        Task<string?> IEncryptionService.EncryptAsync(string text, string password)
-        {
-            throw new NotImplementedException();
-        }
+        async Task<byte[]?> IEncryptionService.EncryptAsync(string text, string password) =>
+
+            await Task.Run(() =>
+            {
+                try
+                {
+                    var messageBytes = Encoding.UTF8.GetBytes(text);
+                    var passwordSaltBytes = RandomNumberGenerator.GetBytes(32);
+                    byte[] passwordByteArray = Encoding.UTF8.GetBytes(password);
+                    var saltedPasswordByteArray = passwordSaltBytes.Concat(passwordByteArray).ToArray();
+                    var passwordHash = SHA256.HashData(saltedPasswordByteArray);
+                    var iv = RandomNumberGenerator.GetBytes(16);
+                    using Aes aes = Aes.Create();
+                    aes.Mode = CipherMode.CBC;
+                    aes.Padding = PaddingMode.PKCS7;
+                    aes.IV = iv;
+                    aes.Key = passwordHash;
+                    using ICryptoTransform encryptor = aes.CreateEncryptor(passwordHash, iv);
+                    var encryptedMessageBytes = encryptor.TransformFinalBlock(messageBytes, 0, messageBytes.Length);
+                    return passwordSaltBytes.Concat(iv).Concat(encryptedMessageBytes).ToArray();
+                }
+                catch (CryptographicException)
+                {
+                    return null;
+                }
+            });
+
     }
 }

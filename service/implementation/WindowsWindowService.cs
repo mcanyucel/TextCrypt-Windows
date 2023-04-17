@@ -1,5 +1,5 @@
 ﻿using Microsoft.Win32;
-
+using System.Windows;
 
 namespace TextCrypt.service.implementation
 {
@@ -18,7 +18,7 @@ namespace TextCrypt.service.implementation
             }
         }
 
-        string? IWindowService.PickTextFile()
+        string? IWindowService.PickReadFile()
         {
             var opf = new OpenFileDialog
             {
@@ -32,6 +32,27 @@ namespace TextCrypt.service.implementation
             {
                 return null;
             }
+        }
+
+        string? IWindowService.PickSaveFile()
+        {
+            var sfd = new SaveFileDialog
+            {
+                Filter = "Binary Files (*.bin)|*.bin"
+            };
+            if (sfd.ShowDialog() == true)
+            {
+                return sfd.FileName;
+            }
+            else
+            {
+                return null;
+            }
+        }
+
+        void IWindowService.ShowError(string message)
+        {
+            MessageBox.Show(message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
         }
     }
 }

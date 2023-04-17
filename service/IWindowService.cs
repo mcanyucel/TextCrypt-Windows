@@ -4,7 +4,11 @@ namespace TextCrypt.service
 {
     internal interface IWindowService
     {
-        internal String? PickTextFile();
+        internal String? PickReadFile();
         internal String? AskForPassword();
+
+        internal String? PickSaveFile();
+
+        internal void ShowError(String message);
     }
 }

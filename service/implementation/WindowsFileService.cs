@@ -10,5 +10,21 @@ namespace TextCrypt.service.implementation
         {
             return await File.ReadAllBytesAsync(path);
         }
+
+        async Task<bool> IFileService.WriteFileAsync(string path, byte[] data)
+        {
+            var success = true;
+
+            try
+            {
+                await File.WriteAllBytesAsync(path, data);
+            }
+            catch (Exception)
+            {
+                success = false;
+            }
+
+            return success;
+        }
     }
 }

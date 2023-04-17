@@ -14,11 +14,17 @@ namespace TextCrypt.viewmodel
         private bool isIdle = true;
         private string displayText = string.Empty;
         private string windowTitle = "TextCrypt";
+        private bool canEdit = false;
 
         public ICommand OpenExistingFileCommand { get; }
+        public ICommand CreateNewFileCommand { get; }
+        public ICommand SaveFileCommand { get; }
+
         public string DisplayText { get => displayText; set => SetProperty(ref displayText, value); }
         public string WindowTitle { get => windowTitle; set => SetProperty(ref windowTitle, $"TextCrypt {value}"); }
         public bool IsIdle { get => isIdle; set { SetProperty(ref isIdle, value); NotifyCommands(OpenExistingFileCommand); } }
+
+        public bool CanEdit { get => canEdit; set { SetProperty(ref canEdit, value); NotifyCommands(SaveFileCommand); } }
 
         public MainViewModel(IWindowService windowServiceProxy, IFileService fileServiceProxy, IEncryptionService encryptionServiceProxy)
         {
@@ -26,13 +32,52 @@ namespace TextCrypt.viewmodel
             fileService = fileServiceProxy;
             encryptionService = encryptionServiceProxy;
             OpenExistingFileCommand = new AsyncRelayCommand(OpenExistingFile, CanOpenExistingFileCommandExecute);
+            CreateNewFileCommand = new RelayCommand(CreateNewFile, CreateNewFileCanExecute);
+            SaveFileCommand = new AsyncRelayCommand(SaveFile, SaveFileCanExecute);
             
+        }
+
+        private void CreateNewFile()
+        {
+            DisplayText = string.Empty;
+            WindowTitle = "Untitled";
+            CanEdit = true;
+        }
+
+        private bool CreateNewFileCanExecute()
+        {
+            return isIdle;
+        }
+
+        private async Task SaveFile()
+        {
+            IsIdle = false;
+            var password = windowService.AskForPassword();
+            if (password != null)
+            {
+                var encryptedBytes = await encryptionService.EncryptAsync(DisplayText, password);
+                if (encryptedBytes != null)
+                {
+                    var path = windowService.PickSaveFile();
+                    if (path != null)
+                    {
+                        await fileService.WriteFileAsync(path, encryptedBytes);
+                        WindowTitle = path;
+                    }
+                }
+            }
+            IsIdle = true;
+        }
+
+        private bool SaveFileCanExecute()
+        {
+            return isIdle && CanEdit;
         }
 
         private async Task OpenExistingFile()
         {
             IsIdle = false;
-            var path = windowService.PickTextFile();
+            var path = windowService.PickReadFile();
             if (path != null)
             {
                 var encryptedBytes = await fileService.ReadFileAsync(path);
@@ -42,14 +87,15 @@ namespace TextCrypt.viewmodel
                     
                     if (password != null)
                     {
-                        WindowTitle = path;
                         var decryptedText = await encryptionService.DecryptAsync(encryptedBytes, password);
                         if (decryptedText == null)
                         {
-                            DisplayText = "Invalid password or corrupted file.";
+                            windowService.ShowError("Invalid password or corrupted file.");
                         }
                         else
                         {
+                            canEdit = true;
+                            WindowTitle = path;
                             DisplayText = decryptedText;
                         }
                     }

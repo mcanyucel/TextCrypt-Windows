@@ -13,7 +13,7 @@ namespace TextCrypt.converter
             {
                 if ((bool)value)
                 {
-                    return Visibility.Collapsed;
+                    return Visibility.Hidden;
                 }
                 else
                 {

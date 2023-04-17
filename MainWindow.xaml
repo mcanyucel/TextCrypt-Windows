@@ -11,6 +11,7 @@
         Title="{Binding WindowTitle}" Height="450" Width="800">
     <Window.Resources>
         <converter:InverseBooleanToVisibilityConverter x:Key="InverseBooleanToVisibilityConverter" />
+        <converter:BooleanInverter x:Key="BooleanInverter" />
     </Window.Resources>
     <Grid>
         <Grid.RowDefinitions>
@@ -26,11 +27,19 @@
         <TextBlock Grid.Row="0" Text="Recent Files" Margin="8" />
         <ListView Grid.Row="1"></ListView>
         <UniformGrid Grid.Row="2" Rows="1" Columns="2">
-            <Button Content="CREATE NEW FILE" Margin="8" Style="{StaticResource MahApps.Styles.Button.Square.Accent}"/>
+            <Button Content="CREATE NEW FILE" Margin="8" Style="{StaticResource MahApps.Styles.Button.Square.Accent}" Command="{Binding CreateNewFileCommand}"/>
             <Button Content="OPEN EXISTING FILE" Margin="8"
                      Command="{Binding OpenExistingFileCommand}" Style="{StaticResource MahApps.Styles.Button.Square.Accent}" />
         </UniformGrid>
-        <TextBox Grid.Row="0" Grid.RowSpan="3" Grid.Column="1" Margin="4" mah:TextBoxHelper.Watermark="Create a new file or open an existing one" AcceptsReturn="True" VerticalScrollBarVisibility="Auto" Text="{Binding DisplayText, Mode=TwoWay}"   />
-        <mah:MetroProgressBar Grid.Row="2" Grid.Column="1" Margin="4" Visibility="{Binding IsIdle, Converter={StaticResource InverseBooleanToVisibilityConverter}}" IsIndeterminate="True" />
+        <TextBox Grid.Row="0" Grid.RowSpan="3" Grid.Column="1" Margin="4" AcceptsReturn="True" VerticalScrollBarVisibility="Auto" 
+                 IsReadOnly="{Binding CanEdit, Converter={StaticResource BooleanInverter}}"
+                 Text="{Binding DisplayText, Mode=TwoWay}"
+                 mah:TextBoxHelper.Watermark="Open an existing file or create a new file"
+                 />
+        <UniformGrid Grid.Row="2" Grid.Column="1" Columns="2">
+            <mah:MetroProgressBar  Margin="4" Visibility="{Binding IsIdle, Converter={StaticResource InverseBooleanToVisibilityConverter}}" IsIndeterminate="True" />
+            <Button Content="SAVE" Margin="8" Command="{Binding SaveFileCommand}" Style="{StaticResource MahApps.Styles.Button.Square.Accent}" />
+        </UniformGrid>
+        
     </Grid>
 </mah:MetroWindow>
