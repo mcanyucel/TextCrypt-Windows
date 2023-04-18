@@ -10,5 +10,7 @@ namespace TextCrypt.service
         internal String? PickSaveFile();
 
         internal void ShowError(String message);
+
+        internal bool Verify(String message);
     }
 }

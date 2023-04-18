@@ -54,5 +54,10 @@ namespace TextCrypt.service.implementation
         {
             MessageBox.Show(message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
         }
+
+        bool IWindowService.Verify(string message)
+        {
+            return MessageBox.Show(message, "Verify", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes;
+        }
     }
 }

@@ -30,6 +30,8 @@ namespace TextCrypt.viewmodel
         public ICommand StarRecentFileCommand { get; }
         public ICommand OpenRecentFileCommand { get; }
 
+        public ICommand RemoveRecentFileCommand { get; }
+
 
         public string DisplayText { get => displayText; set => SetProperty(ref displayText, value); }
         public string WindowTitle { get => windowTitle; set => SetProperty(ref windowTitle, $"TextCrypt {value}"); }
@@ -51,7 +53,27 @@ namespace TextCrypt.viewmodel
             SaveFileCommand = new AsyncRelayCommand(SaveFile, SaveFileCanExecute);
             StarRecentFileCommand = new AsyncRelayCommand<RecentFileItem>(StarFile, StarFileCanExecute);
             OpenRecentFileCommand = new AsyncRelayCommand<RecentFileItem>(OpenRecentFile, OpenRecentFileCanExecute);
+            RemoveRecentFileCommand = new AsyncRelayCommand<RecentFileItem>(RemoveRecentFile, RemoveRecentFileCanExecute);
             Task.Run(async () => RecentFiles = new ObservableCollection<RecentFileItem>(await fileService.GetRecentFilesAsync()));
+        }
+
+        private bool RemoveRecentFileCanExecute(RecentFileItem? obj)
+        {
+            return IsIdle;
+        }
+
+        private async Task RemoveRecentFile(RecentFileItem? arg)
+        {
+            if (arg == null) return;
+
+            if (windowService.Verify("Do you want to delete this record? This will not delete the file on the disk."))
+            {
+                if (RecentFiles.Contains(arg))
+                {
+                    recentFiles.Remove(arg);
+                    _ = await fileService.SaveRecentFilesAsync(RecentFiles.ToList());
+                }
+            }
         }
 
         private bool StarFileCanExecute(RecentFileItem? recentFileItem)

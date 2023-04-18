@@ -44,7 +44,7 @@
                         </ToggleButton>
                         <TextBlock Grid.Column="1" Margin="4" Text="{Binding FileName}" VerticalAlignment="Center" />
                         <Button Grid.Column="2" Margin="4" Content="Open" Style="{StaticResource MahApps.Styles.Button.Flat}" VerticalAlignment="Center" Command="{Binding RelativeSource={RelativeSource AncestorType=ItemsControl}, Path=DataContext.OpenRecentFileCommand}" CommandParameter="{Binding}" />
-                        <Button Grid.Column="3" Margin="4" Content="Remove" Style="{StaticResource MahApps.Styles.Button.Flat}" VerticalAlignment="Center" />
+                        <Button Grid.Column="3" Margin="4" Content="Remove" Style="{StaticResource MahApps.Styles.Button.Flat}" VerticalAlignment="Center" Command="{Binding RelativeSource={RelativeSource AncestorType=ItemsControl}, Path=DataContext.RemoveRecentFileCommand}" CommandParameter="{Binding}" />
                     </Grid>
                 </DataTemplate>
             </ItemsControl.ItemTemplate>
