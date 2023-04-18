@@ -22,13 +22,13 @@ namespace TextCrypt.viewmodel
         private bool canEdit = false;
         private ObservableCollection<RecentFileItem> recentFiles = new();
         private RecentFileItem? selectedRecentFileItem = null;
-       
+
 
         public ICommand OpenExistingFileCommand { get; }
         public ICommand CreateNewFileCommand { get; }
         public ICommand SaveFileCommand { get; }
-
-        public ICommand StarRecentFileCommand {  get; }
+        public ICommand StarRecentFileCommand { get; }
+        public ICommand OpenRecentFileCommand { get; }
 
 
         public string DisplayText { get => displayText; set => SetProperty(ref displayText, value); }
@@ -50,7 +50,7 @@ namespace TextCrypt.viewmodel
             CreateNewFileCommand = new RelayCommand(CreateNewFile, CreateNewFileCanExecute);
             SaveFileCommand = new AsyncRelayCommand(SaveFile, SaveFileCanExecute);
             StarRecentFileCommand = new AsyncRelayCommand<RecentFileItem>(StarFile, StarFileCanExecute);
-
+            OpenRecentFileCommand = new AsyncRelayCommand<RecentFileItem>(OpenRecentFile, OpenRecentFileCanExecute);
             Task.Run(async () => RecentFiles = new ObservableCollection<RecentFileItem>(await fileService.GetRecentFilesAsync()));
         }
 
@@ -103,6 +103,11 @@ namespace TextCrypt.viewmodel
 
             }
             IsIdle = true;
+        }
+
+        private bool OpenRecentFileCanExecute(RecentFileItem? item)
+        {
+            return IsIdle;
         }
 
         private void CreateNewFile()
