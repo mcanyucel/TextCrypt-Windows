@@ -1,7 +1,11 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using System;
+using System.Collections.ObjectModel;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using TextCrypt.model;
 using TextCrypt.service;
 
 namespace TextCrypt.viewmodel
@@ -15,6 +19,7 @@ namespace TextCrypt.viewmodel
         private string displayText = string.Empty;
         private string windowTitle = "TextCrypt";
         private bool canEdit = false;
+        private ObservableCollection<RecentFileItem> recentFiles = new();
 
         public ICommand OpenExistingFileCommand { get; }
         public ICommand CreateNewFileCommand { get; }
@@ -26,6 +31,8 @@ namespace TextCrypt.viewmodel
 
         public bool CanEdit { get => canEdit; set { SetProperty(ref canEdit, value); NotifyCommands(SaveFileCommand); } }
 
+        public ObservableCollection<RecentFileItem> RecentFiles { get => recentFiles; set => SetProperty(ref recentFiles, value); }
+
         public MainViewModel(IWindowService windowServiceProxy, IFileService fileServiceProxy, IEncryptionService encryptionServiceProxy)
         {
             windowService = windowServiceProxy;
@@ -34,7 +41,8 @@ namespace TextCrypt.viewmodel
             OpenExistingFileCommand = new AsyncRelayCommand(OpenExistingFile, CanOpenExistingFileCommandExecute);
             CreateNewFileCommand = new RelayCommand(CreateNewFile, CreateNewFileCanExecute);
             SaveFileCommand = new AsyncRelayCommand(SaveFile, SaveFileCanExecute);
-            
+
+            Task.Run(async () => RecentFiles = new ObservableCollection<RecentFileItem>(await fileService.GetRecentFilesAsync()));
         }
 
         private void CreateNewFile()
@@ -84,7 +92,7 @@ namespace TextCrypt.viewmodel
                 if (encryptedBytes != null)
                 {
                     var password = windowService.AskForPassword();
-                    
+
                     if (password != null)
                     {
                         var decryptedText = await encryptionService.DecryptAsync(encryptedBytes, password);
@@ -97,13 +105,23 @@ namespace TextCrypt.viewmodel
                             canEdit = true;
                             WindowTitle = path;
                             DisplayText = decryptedText;
+                            AddToRecentFiles(path);
                         }
                     }
-                    
+
                 }
-                
+
             }
             IsIdle = true;
+        }
+
+        private void AddToRecentFiles(string filePath)
+        {
+            if (!RecentFiles.Any(f => f.FilePath == filePath))
+            {
+                RecentFiles.Add(new RecentFileItem(fileService.GetFileName(filePath), filePath, DateTime.Now, false));
+                fileService.SaveRecentFilesAsync(recentFiles.ToList());
+            }
         }
 
         private bool CanOpenExistingFileCommandExecute()

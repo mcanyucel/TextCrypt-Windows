@@ -24,8 +24,14 @@
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
 
-        <TextBlock Grid.Row="0" Text="Recent Files" Margin="8" />
-        <ListView Grid.Row="1"></ListView>
+        <TextBlock Grid.Row="0" Text="Recent Files" Margin="8" FontWeight="Bold" FontSize="16" />
+        <ListView Grid.Row="1" ItemsSource="{Binding RecentFiles}" SelectionMode="Single">
+            <ListView.View>
+                <GridView AllowsColumnReorder="False">
+                    <GridViewColumn DisplayMemberBinding="{Binding Path=FileName}" />
+                </GridView>
+            </ListView.View>
+        </ListView>
         <UniformGrid Grid.Row="2" Rows="1" Columns="2">
             <Button Content="CREATE NEW FILE" Margin="8" Style="{StaticResource MahApps.Styles.Button.Square.Accent}" Command="{Binding CreateNewFileCommand}"/>
             <Button Content="OPEN EXISTING FILE" Margin="8"
@@ -40,6 +46,6 @@
             <mah:MetroProgressBar  Margin="4" Visibility="{Binding IsIdle, Converter={StaticResource InverseBooleanToVisibilityConverter}}" IsIndeterminate="True" />
             <Button Content="SAVE" Margin="8" Command="{Binding SaveFileCommand}" Style="{StaticResource MahApps.Styles.Button.Square.Accent}" />
         </UniformGrid>
-        
+
     </Grid>
 </mah:MetroWindow>
