@@ -25,7 +25,7 @@
         </Grid.ColumnDefinitions>
 
         <TextBlock Grid.Row="0" Text="Recent Files" Margin="8" FontWeight="Bold" FontSize="16" />
-        <ListView Grid.Row="1" ItemsSource="{Binding RecentFiles}" SelectionMode="Single">
+        <ListView Grid.Row="1" ItemsSource="{Binding RecentFiles}" IsEnabled="{Binding IsIdle}" SelectionMode="Single" SelectedItem="{Binding SelectedRecentFileItem, Mode=TwoWay}">
             <ListView.View>
                 <GridView AllowsColumnReorder="False">
                     <GridViewColumn DisplayMemberBinding="{Binding Path=FileName}" />

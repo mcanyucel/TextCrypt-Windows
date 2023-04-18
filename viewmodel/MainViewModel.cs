@@ -20,16 +20,21 @@ namespace TextCrypt.viewmodel
         private string windowTitle = "TextCrypt";
         private bool canEdit = false;
         private ObservableCollection<RecentFileItem> recentFiles = new();
+        private RecentFileItem? selectedRecentFileItem = null;
+       
 
         public ICommand OpenExistingFileCommand { get; }
         public ICommand CreateNewFileCommand { get; }
         public ICommand SaveFileCommand { get; }
+
 
         public string DisplayText { get => displayText; set => SetProperty(ref displayText, value); }
         public string WindowTitle { get => windowTitle; set => SetProperty(ref windowTitle, $"TextCrypt {value}"); }
         public bool IsIdle { get => isIdle; set { SetProperty(ref isIdle, value); NotifyCommands(OpenExistingFileCommand); } }
 
         public bool CanEdit { get => canEdit; set { SetProperty(ref canEdit, value); NotifyCommands(SaveFileCommand); } }
+
+        public RecentFileItem? SelectedRecentFileItem { get => selectedRecentFileItem; set { SetProperty(ref selectedRecentFileItem, value); _ = OpenRecentFile(value); } }
 
         public ObservableCollection<RecentFileItem> RecentFiles { get => recentFiles; set => SetProperty(ref recentFiles, value); }
 
@@ -45,11 +50,49 @@ namespace TextCrypt.viewmodel
             Task.Run(async () => RecentFiles = new ObservableCollection<RecentFileItem>(await fileService.GetRecentFilesAsync()));
         }
 
+        private async Task OpenRecentFile(RecentFileItem? item)
+        {
+            if (item == null || item.FilePath == null) return;
+
+            IsIdle = false;
+
+            var path = item.FilePath;
+
+            var encryptedBytes = await fileService.ReadFileAsync(path);
+            if (encryptedBytes != null)
+            {
+                var password = windowService.AskForPassword();
+
+                if (password != null)
+                {
+                    var decryptedText = await encryptionService.DecryptAsync(encryptedBytes, password);
+                    if (decryptedText == null)
+                    {
+                        windowService.ShowError("Invalid password or corrupted file.");
+                        SelectedRecentFileItem = null;
+                    }
+                    else
+                    {
+                        canEdit = true;
+                        WindowTitle = path;
+                        DisplayText = decryptedText;
+                    }
+                }
+                else
+                {
+                    SelectedRecentFileItem = null;
+                }
+
+            }
+            IsIdle = true;
+        }
+
         private void CreateNewFile()
         {
             DisplayText = string.Empty;
             WindowTitle = "Untitled";
             CanEdit = true;
+            SelectedRecentFileItem = null;
         }
 
         private bool CreateNewFileCanExecute()
