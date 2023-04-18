@@ -4,6 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
+        xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
         xmlns:viewmodel="clr-namespace:TextCrypt.viewmodel"
         xmlns:converter="clr-namespace:TextCrypt.converter"
         d:DataContext="{d:DesignInstance Type=viewmodel:MainViewModel}"
@@ -25,13 +26,29 @@
         </Grid.ColumnDefinitions>
 
         <TextBlock Grid.Row="0" Text="Recent Files" Margin="8" FontWeight="Bold" FontSize="16" />
-        <ListView Grid.Row="1" ItemsSource="{Binding RecentFiles}" IsEnabled="{Binding IsIdle}" SelectionMode="Single" SelectedItem="{Binding SelectedRecentFileItem, Mode=TwoWay}">
-            <ListView.View>
-                <GridView AllowsColumnReorder="False">
-                    <GridViewColumn DisplayMemberBinding="{Binding Path=FileName}" />
-                </GridView>
-            </ListView.View>
-        </ListView>
+        <ItemsControl Grid.Row="1" ItemsSource="{Binding RecentFiles}">
+            <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="auto" />
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="auto" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="auto" />
+                            <ColumnDefinition Width="auto" />
+                        </Grid.ColumnDefinitions>
+                        <ToggleButton Style="{StaticResource MahApps.Styles.ToggleButton.Circle}" IsChecked="{Binding IsStarred, Mode=OneTime}" Command="{Binding RelativeSource={RelativeSource AncestorType=ItemsControl}, Path=DataContext.StarRecentFileCommand}" CommandParameter="{Binding}" Margin="8,0,0,0" Width="24" Height="24">
+                            <iconPacks:PackIconModern Kind="Star" />
+                        </ToggleButton>
+                        <TextBlock Grid.Column="1" Margin="4" Text="{Binding FileName}" VerticalAlignment="Center" />
+                        <Button Grid.Column="2" Margin="4" Content="Open" Style="{StaticResource MahApps.Styles.Button.Flat}" VerticalAlignment="Center" />
+                        <Button Grid.Column="3" Margin="4" Content="Remove" Style="{StaticResource MahApps.Styles.Button.Flat}" VerticalAlignment="Center" />
+                    </Grid>
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
         <UniformGrid Grid.Row="2" Rows="1" Columns="2">
             <Button Content="CREATE NEW FILE" Margin="8" Style="{StaticResource MahApps.Styles.Button.Square.Accent}" Command="{Binding CreateNewFileCommand}"/>
             <Button Content="OPEN EXISTING FILE" Margin="8"

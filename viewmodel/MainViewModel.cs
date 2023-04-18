@@ -2,6 +2,7 @@
 using CommunityToolkit.Mvvm.Input;
 using System;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
@@ -27,10 +28,12 @@ namespace TextCrypt.viewmodel
         public ICommand CreateNewFileCommand { get; }
         public ICommand SaveFileCommand { get; }
 
+        public ICommand StarRecentFileCommand {  get; }
+
 
         public string DisplayText { get => displayText; set => SetProperty(ref displayText, value); }
         public string WindowTitle { get => windowTitle; set => SetProperty(ref windowTitle, $"TextCrypt {value}"); }
-        public bool IsIdle { get => isIdle; set { SetProperty(ref isIdle, value); NotifyCommands(OpenExistingFileCommand); } }
+        public bool IsIdle { get => isIdle; set { SetProperty(ref isIdle, value); NotifyCommands(OpenExistingFileCommand, StarRecentFileCommand); } }
 
         public bool CanEdit { get => canEdit; set { SetProperty(ref canEdit, value); NotifyCommands(SaveFileCommand); } }
 
@@ -46,8 +49,23 @@ namespace TextCrypt.viewmodel
             OpenExistingFileCommand = new AsyncRelayCommand(OpenExistingFile, CanOpenExistingFileCommandExecute);
             CreateNewFileCommand = new RelayCommand(CreateNewFile, CreateNewFileCanExecute);
             SaveFileCommand = new AsyncRelayCommand(SaveFile, SaveFileCanExecute);
+            StarRecentFileCommand = new AsyncRelayCommand<RecentFileItem>(StarFile, StarFileCanExecute);
 
             Task.Run(async () => RecentFiles = new ObservableCollection<RecentFileItem>(await fileService.GetRecentFilesAsync()));
+        }
+
+        private bool StarFileCanExecute(RecentFileItem? recentFileItem)
+        {
+            return isIdle;
+        }
+
+        private async Task StarFile(RecentFileItem? recentFileItem)
+        {
+            if (recentFileItem != null)
+            {
+                recentFileItem.IsStarred = !recentFileItem.IsStarred;
+                _ = await fileService.SaveRecentFilesAsync(RecentFiles.ToList());
+            }
         }
 
         private async Task OpenRecentFile(RecentFileItem? item)

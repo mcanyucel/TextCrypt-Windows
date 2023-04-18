@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
 using TextCrypt.model;
@@ -17,9 +18,18 @@ namespace TextCrypt.service.implementation
             try
             {
                 var recentFilesString = await File.ReadAllTextAsync(recentFilesList);
-                return JsonSerializer.Deserialize<List<RecentFileItem>>(recentFilesString) ?? new List<RecentFileItem>();
+                var list = JsonSerializer.Deserialize<List<RecentFileItem>>(recentFilesString);
+                if (list != null)
+                {
+                    return list.OrderBy(q => q.IsStarred).OrderByDescending(q => q.LastOpened).ToList();
+                }
+                else
+                {
+                    return new();
+                }
+                
             }
-            catch { return new List<RecentFileItem>(); }
+            catch { return new(); }
 
         }
 
